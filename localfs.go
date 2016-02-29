@@ -22,15 +22,26 @@ func (this *LocalForwardServer) createTunnel() {
 	if this.SshUserPassword == "" && this.SshUserName == "" {
 		log.Fatal("No password or private key available")
 	}
-	if this.SshPrivateKey != "" {
-		//todo
-	}
-
 	config := &ssh.ClientConfig{
 		User: this.SshUserName,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(this.SshUserPassword),
 		},
+	}
+	if this.SshPrivateKey != "" {
+		log.Println(this.SshPrivateKey)
+		signer, err := ssh.ParsePrivateKey([]byte(this.SshPrivateKey))
+		if err != nil {
+			log.Fatalf("ssh.ParsePrivateKey error:%v", err)
+		}
+		clientkey := ssh.PublicKeys(signer)
+		config = &ssh.ClientConfig{
+			User: this.SshUserName,
+			Auth: []ssh.AuthMethod{
+				clientkey,
+			},
+		}
+
 	}
 
 	client, err := ssh.Dial("tcp", this.SshServerAddress, config)
