@@ -8,13 +8,8 @@ import (
 )
 
 type LocalForwardServer struct {
-	LocalBindAddress string
-	RemoteAddress    string
-	SshServerAddress string
-	SshUserName      string
-	SshUserPassword  string
-	SshPrivateKey    string
-	tunnel           *Tunnel
+	ForwardConfig
+	tunnel *Tunnel
 }
 
 //create tunnel
@@ -76,18 +71,16 @@ func remoteReaderToLoacalWriter(sshConn net.Conn, localConn net.Conn) {
 	}
 }
 
-func (this *LocalForwardServer) Init() {
-	this.createTunnel()
-}
-
 func (this *LocalForwardServer) Start(call func()) {
+	this.createTunnel()
 	ln, err := net.Listen("tcp", this.LocalBindAddress)
 	if err != nil {
 		log.Fatalf("net listen error :%v", err)
 	}
+	defer ln.Close()
 	var called bool
 	for {
-		if !called {
+		if !called && call != nil {
 			go call()
 			called = true
 		}
