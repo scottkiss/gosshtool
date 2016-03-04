@@ -3,7 +3,6 @@ package gosshtool
 import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
-	"log"
 	"strings"
 )
 
@@ -15,7 +14,7 @@ type SSHClient struct {
 }
 
 func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {
-	port := 22
+	port := "22"
 	host := c.Host
 	hstr := strings.SplitN(host, ":", 2)
 	if len(hstr) == 2 {
@@ -23,32 +22,8 @@ func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {
 		port = hstr[1]
 	}
 
-	if c.Password == "" && c.User == "" {
-		log.Fatal("No password or private key available")
-	}
-	config := &ssh.ClientConfig{
-		User: c.User,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(c.Password),
-		},
-	}
-	if c.Privatekey != "" {
-		log.Println(c.Privatekey)
-		signer, err := ssh.ParsePrivateKey([]byte(c.PrivateKey))
-		if err != nil {
-			log.Fatalf("ssh.ParsePrivateKey error:%v", err)
-		}
-		clientkey := ssh.PublicKeys(signer)
-		config = &ssh.ClientConfig{
-			User: c.User,
-			Auth: []ssh.AuthMethod{
-				clientkey,
-			},
-		}
-
-	}
-
-	conn, err := ssh.Dial("tcp", host+":"+port, config)
+	config := makeConfig(c.User, c.Password, c.Privatekey)
+	conn, err = ssh.Dial("tcp", host+":"+port, config)
 	return
 }
 
