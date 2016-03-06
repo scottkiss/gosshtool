@@ -13,12 +13,13 @@ type LocalForwardServer struct {
 
 //create tunnel
 func (this *LocalForwardServer) createTunnel() {
-	sshclient := &SSHClient{
+	config := &SSHClientConfig{
 		User:       this.SshUserName,
 		Password:   this.SshUserPassword,
 		Host:       this.SshServerAddress,
 		Privatekey: this.SshPrivateKey,
 	}
+	sshclient := NewSSHClient(config)
 	conn, err := sshclient.getConnection()
 	if err != nil {
 		log.Fatal("Failed to dial: " + err.Error())

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
 	"strings"
+	"sync"
 )
 
 type SSHClient struct {
-	Host       string
-	User       string
-	Password   string
-	Privatekey string
+	SSHClientConfig
+	remoteConns      map[string]*ssh.Client
+	remoteConnsMutex sync.Mutex
 }
 
 func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {

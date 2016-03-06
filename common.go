@@ -5,6 +5,13 @@ import (
 	"log"
 )
 
+type SSHClientConfig struct {
+	Host       string
+	User       string
+	Password   string
+	Privatekey string
+}
+
 func makeConfig(user string, password string, privateKey string) (config *ssh.ClientConfig) {
 
 	if password == "" && user == "" {
