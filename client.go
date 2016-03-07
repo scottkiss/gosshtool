@@ -13,6 +13,27 @@ type SSHClient struct {
 	remoteConnsMutex sync.Mutex
 }
 
+func (c *SSHClient) getConnectionByHost(hostname string) (conn *ssh.Client, err error) {
+	if c.remoteConns == nil {
+		c.remoteConns = make(map[string]*ssh.Client)
+	}
+	c.remoteConnsMutex.Lock()
+	conn = c.remoteConns[hostname]
+	if conn != nil {
+		return
+	}
+	c.remoteConnsMutex.Unlock()
+
+	conn, err = c.getConnection()
+	if err != nil {
+		return
+	}
+	c.remoteConnsMutex.Lock()
+	c.remoteConns[hostname] = conn
+	c.remoteConnsMutex.Unlock()
+	return
+}
+
 func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {
 	port := "22"
 	host := c.Host
