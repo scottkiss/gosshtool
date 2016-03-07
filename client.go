@@ -4,37 +4,17 @@ import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
 	"strings"
-	"sync"
 )
 
 type SSHClient struct {
 	SSHClientConfig
-	remoteConns      map[string]*ssh.Client
-	remoteConnsMutex sync.Mutex
-}
-
-func (c *SSHClient) getConnectionByHost(hostname string) (conn *ssh.Client, err error) {
-	if c.remoteConns == nil {
-		c.remoteConns = make(map[string]*ssh.Client)
-	}
-	c.remoteConnsMutex.Lock()
-	conn = c.remoteConns[hostname]
-	if conn != nil {
-		return
-	}
-	c.remoteConnsMutex.Unlock()
-
-	conn, err = c.getConnection()
-	if err != nil {
-		return
-	}
-	c.remoteConnsMutex.Lock()
-	c.remoteConns[hostname] = conn
-	c.remoteConnsMutex.Unlock()
-	return
+	remoteConn *ssh.Client
 }
 
 func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {
+	if c.remoteConn != nil {
+		return
+	}
 	port := "22"
 	host := c.Host
 	hstr := strings.SplitN(host, ":", 2)
@@ -45,6 +25,10 @@ func (c *SSHClient) getConnection() (conn *ssh.Client, err error) {
 
 	config := makeConfig(c.User, c.Password, c.Privatekey)
 	conn, err = ssh.Dial("tcp", host+":"+port, config)
+	if err != nil {
+		return
+	}
+	c.remoteConn = conn
 	return
 }
 
