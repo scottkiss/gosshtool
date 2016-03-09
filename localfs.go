@@ -20,7 +20,7 @@ func (this *LocalForwardServer) createTunnel() {
 		Privatekey: this.SshPrivateKey,
 	}
 	sshclient := NewSSHClient(config)
-	conn, err := sshclient.getConnection()
+	conn, err := sshclient.Connect()
 	if err != nil {
 		log.Fatal("Failed to dial: " + err.Error())
 	}

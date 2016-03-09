@@ -2,8 +2,21 @@ package gosshtool
 
 import (
 	"golang.org/x/crypto/ssh"
+	"io"
 	"log"
 )
+
+type PtyInfo struct {
+	Term  string
+	H     int
+	W     int
+	Modes ssh.TerminalModes
+}
+
+type ReadWriteCloser interface {
+	io.Reader
+	io.WriteCloser
+}
 
 type SSHClientConfig struct {
 	Host       string
