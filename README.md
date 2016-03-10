@@ -98,6 +98,10 @@ func main() {
 
 ```
 
+## More Examples
+* [sshcmd](https://github.com/scottkiss/sshcmd) simple ssh command line client.
+
+
 ## License
 View the [LICENSE](https://github.com/scottkiss/gosshtool/blob/master/LICENSE) file
 
