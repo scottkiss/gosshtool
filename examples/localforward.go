@@ -13,9 +13,9 @@ func dbop() {
 	ds.Charset = "utf8"
 	ds.Host = "127.0.0.1"
 	ds.Port = 9999
-	ds.DatabaseName = "info"
+	ds.DatabaseName = "test"
 	ds.User = "root"
-	ds.Password = "databasepassword"
+	ds.Password = "password"
 	dbm, err := dbmagic.Open("mysql", ds)
 	if err != nil {
 		log.Fatal(err)
@@ -33,12 +33,12 @@ func dbop() {
 func main() {
 	server := new(gosshtool.LocalForwardServer)
 	server.LocalBindAddress = ":9999"
-	server.RemoteAddress = "127.0.0.1:3306"
-	server.SshServerAddress = "180.111.111.111:22"
-	server.SshUserPassword = "yourpassword"
+	server.RemoteAddress = "remote.com:3306"
+	server.SshServerAddress = "112.224.38.111"
+	server.SshUserPassword = "passwd"
 	//buf, _ := ioutil.ReadFile("/your/home/path/.ssh/id_rsa")
 	//server.SshPrivateKey = string(buf)
-	server.SshUserName = "root"
+	server.SshUserName = "sirk"
 	server.Start(dbop)
 	defer server.Stop()
 }
