@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -30,6 +31,7 @@ func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
 	if err != nil {
 		return
 	}
+	log.Println("dial ssh success")
 	c.remoteConn = conn
 	session, err := conn.NewSession()
 	if err != nil {
@@ -45,6 +47,10 @@ func (c *SSHClient) Cmd(cmd string) (output, errput string, err error) {
 		if err != nil {
 			return
 		}
+	}
+	c.session, err = c.remoteConn.NewSession()
+	if err != nil {
+		return
 	}
 	var stdoutBuf bytes.Buffer
 	var stderrBuf bytes.Buffer
@@ -64,10 +70,10 @@ func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) error {
 			return err
 		}
 	}
+
 	if err := c.session.RequestPty(pty.Term, pty.H, pty.W, pty.Modes); err != nil {
 		return err
 	}
-
 	wc, err := c.session.StdinPipe()
 	if err != nil {
 		return err

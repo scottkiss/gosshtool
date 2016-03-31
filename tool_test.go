@@ -5,20 +5,21 @@ import (
 )
 
 func Test_newSSHClinet(t *testing.T) {
-	/*config := &SSHClientConfig{
-		User:     "myname",
-		Password: "1231",
-		Host:     "11.23.1.1",
-	}
-	sshclient := NewSSHClient(config)
-	stdout, stderr, err := sshclient.Cmd("pwd")
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(stdout)
-	t.Log(stderr)
-	*/
-	t.Log("test")
+	/*	config := &SSHClientConfig{
+			User:     "s",
+			Password: "1223",
+			Host:     "127.0.0.1",
+		}
+		sshclient := NewSSHClient(config)
+		stdout, stderr, err := sshclient.Cmd("pwd")
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(stdout)
+		t.Log(stderr)
+		stdout, stderr, err = sshclient.Cmd("ls")
+		t.Log(stdout)
+		t.Log("test")*/
 }
 
 func Test_mutiCmd(t *testing.T) {
