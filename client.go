@@ -63,17 +63,22 @@ func (c *SSHClient) Cmd(cmd string) (output, errput string, err error) {
 	return
 }
 
-func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) error {
+func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) (err error) {
 	if c.session == nil {
 		_, err := c.Connect()
 		if err != nil {
 			return err
 		}
 	}
-
-	if err := c.session.RequestPty(pty.Term, pty.H, pty.W, pty.Modes); err != nil {
+	c.session, err = c.remoteConn.NewSession()
+	if err != nil {
 		return err
 	}
+
+	if err = c.session.RequestPty(pty.Term, pty.H, pty.W, pty.Modes); err != nil {
+		return err
+	}
+
 	wc, err := c.session.StdinPipe()
 	if err != nil {
 		return err
