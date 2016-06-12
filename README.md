@@ -8,7 +8,7 @@ gosshtool provide some useful functions for ssh client in golang.implemented usi
 * command execution on multiple servers.
 * ssh tunnel local port forwarding.
 * ssh authentication using private keys or password.
-
+* ssh session timeout support.
 
 ## Installation
 ```bash
