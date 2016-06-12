@@ -19,10 +19,11 @@ type ReadWriteCloser interface {
 }
 
 type SSHClientConfig struct {
-	Host       string
-	User       string
-	Password   string
-	Privatekey string
+	Host                 string
+	User                 string
+	Password             string
+	Privatekey           string
+	SessionTimeoutSecond int
 }
 
 func makeConfig(user string, password string, privateKey string) (config *ssh.ClientConfig) {

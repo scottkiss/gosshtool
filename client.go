@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"time"
 )
 
 type SSHClient struct {
@@ -41,14 +42,18 @@ func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
 	return
 }
 
-func (c *SSHClient) Cmd(cmd string) (output, errput string, err error) {
+func (c *SSHClient) Cmd(cmd string, sn *ssh.Session) (output, errput string, err error) {
 	if c.session == nil {
 		_, err = c.Connect()
 		if err != nil {
 			return
 		}
 	}
-	c.session, err = c.remoteConn.NewSession()
+	if sn == nil {
+		c.session, err = c.remoteConn.NewSession()
+	} else {
+		c.session = sn
+	}
 	if err != nil {
 		return
 	}
@@ -61,6 +66,22 @@ func (c *SSHClient) Cmd(cmd string) (output, errput string, err error) {
 	output = stdoutBuf.String()
 	errput = stderrBuf.String()
 	return
+}
+
+func (c *SSHClient) checkSessionTimeout(curSession *ssh.Session) {
+	timeout := make(chan bool, 1)
+	log.Println(c.SessionTimeoutSecond)
+	go func() {
+		time.Sleep(time.Second * time.Duration(c.SessionTimeoutSecond))
+		timeout <- true
+	}()
+	ch := make(chan int)
+	select {
+	case <-ch:
+	case <-timeout:
+		log.Println("timeout!")
+		closeCurrentSession(curSession)
+	}
 }
 
 func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) (err error) {
@@ -78,7 +99,8 @@ func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) (err error) {
 	if err = c.session.RequestPty(pty.Term, pty.H, pty.W, pty.Modes); err != nil {
 		return err
 	}
-
+	//check session timeout
+	go c.checkSessionTimeout(c.session)
 	wc, err := c.session.StdinPipe()
 	if err != nil {
 		return err
@@ -109,4 +131,8 @@ func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo) (err error) {
 
 func copyIO(dst io.Writer, src io.Reader) (written int64, err error) {
 	return io.Copy(dst, src)
+}
+
+func closeCurrentSession(session *ssh.Session) {
+	session.Close()
 }

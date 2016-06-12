@@ -26,7 +26,7 @@ func NewSSHClient(config *SSHClientConfig) (client *SSHClient) {
 	client.User = config.User
 	client.Password = config.Password
 	client.Privatekey = config.Privatekey
-
+	client.SessionTimeoutSecond = config.SessionTimeoutSecond
 	sshClientsMutex.Lock()
 	sshClients[config.Host] = client
 	sshClientsMutex.Unlock()
@@ -51,5 +51,5 @@ func ExecuteCmd(cmd, hostname string) (output, errput string, err error) {
 	if err != nil {
 		return
 	}
-	return client.Cmd(cmd)
+	return client.Cmd(cmd, nil)
 }
