@@ -35,13 +35,13 @@ go get github.com/scottkiss/gosshtool
 		Host:     "serverB",
 	}
 	gosshtool.NewSSHClient(config2)
-	stdout, _, err := gosshtool.ExecuteCmd("pwd", "serverA")
+	stdout, _,_, err := gosshtool.ExecuteCmd("pwd", "serverA")
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log(stdout)
 
-	stdout, _, err = gosshtool.ExecuteCmd("pwd", "serverB")
+	stdout, _,_, err = gosshtool.ExecuteCmd("pwd", "serverB")
 	if err != nil {
 		t.Error(err)
 	}
