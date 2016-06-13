@@ -74,7 +74,7 @@ func (sc *SshSession) checkSessionTimeout() {
 		t := time.NewTicker(time.Second * 1)
 		for {
 			<-t.C
-			if !(*sc.deadline).IsZero() && time.Now().After(*sc.deadline) {
+			if sc.deadline != nil && time.Now().After(*sc.deadline) {
 				timeout <- true
 			}
 		}
