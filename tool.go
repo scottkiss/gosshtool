@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	mrand "math/rand"
 	"regexp"
 	"strings"
@@ -18,6 +19,8 @@ var (
 )
 
 var seeded bool = false
+
+var syncbufpool *sync.Pool
 
 var uuidRegex *regexp.Regexp = regexp.MustCompile(`^\{?([a-fA-F0-9]{8})-?([a-fA-F0-9]{4})-?([a-fA-F0-9]{4})-?([a-fA-F0-9]{4})-?([a-fA-F0-9]{12})\}?$`)
 
@@ -86,6 +89,52 @@ func randBytes(x []byte) {
 
 func init() {
 	sshClients = make(map[string]*SSHClient)
+	syncbufpool = &sync.Pool{}
+	syncbufpool.New = func() interface{} {
+		return make([]byte, 32*1024)
+	}
+}
+
+func CopyIOAndUpdateSessionDeadline(dst io.Writer, src io.Reader, session *SshSession) (written int64, err error) {
+	if wt, ok := src.(io.WriterTo); ok {
+		return wt.WriteTo(dst)
+	}
+	if rt, ok := dst.(io.ReaderFrom); ok {
+		return rt.ReadFrom(src)
+	}
+
+	buf := syncbufpool.Get().([]byte)
+	defer syncbufpool.Put(buf)
+
+	for {
+		nr, er := src.Read(buf)
+		if nr > 0 {
+			if session.idleTimeout > 0 {
+				deadlinenew := time.Now().Add(time.Second * time.Duration(session.idleTimeout))
+				session.SetDeadline(&deadlinenew)
+			}
+			nw, ew := dst.Write(buf[0:nr])
+			if nw > 0 {
+				written += int64(nw)
+			}
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nr != nw {
+				err = io.ErrShortWrite
+				break
+			}
+		}
+		if er == io.EOF {
+			break
+		}
+		if er != nil {
+			err = er
+			break
+		}
+	}
+	return written, err
 }
 
 func NewSSHClient(config *SSHClientConfig) (client *SSHClient) {
@@ -125,5 +174,5 @@ func ExecuteCmd(cmd, hostname string) (output, errput string, currentSession *Ss
 	if err != nil {
 		return
 	}
-	return client.Cmd(cmd, nil, nil)
+	return client.Cmd(cmd, nil, nil, 0)
 }

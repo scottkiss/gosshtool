@@ -11,13 +11,13 @@ func Test_newSSHClinet(t *testing.T) {
 			Host:     "127.0.0.1",
 		}
 		sshclient := NewSSHClient(config)
-		stdout, stderr,session, err := sshclient.Cmd("pwd",nil,nil)
+		stdout, stderr,session, err := sshclient.Cmd("pwd",nil,nil,0)
 		if err != nil {
 			t.Error(err)
 		}
 		t.Log(stdout)
 		t.Log(stderr)
-		stdout, stderr,session, err = sshclient.Cmd("ls",nil,nil)
+		stdout, stderr,session, err = sshclient.Cmd("ls",nil,nil,0)
 		t.Log(stdout)
 		t.Log("test")*/
 }

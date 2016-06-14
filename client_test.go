@@ -12,7 +12,7 @@ func Test_Cmd(t *testing.T) {
 		}
 		sshclient := NewSSHClient(sshconfig)
 		t.Log(sshclient.Host)
-		stdout, stderr,session, err := sshclient.Cmd("pwd",nil,nil)
+		stdout, stderr,session, err := sshclient.Cmd("pwd",nil,nil,0)
 		if err != nil {
 			t.Error(err)
 		}

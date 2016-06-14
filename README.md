@@ -12,7 +12,7 @@ gosshtool provide some useful functions for ssh client in golang.implemented usi
 
 ## Installation
 ```bash
-go get github.com/scottkiss/gosshtool
+go get -u github.com/scottkiss/gosshtool
 ```
 
 ## Examples

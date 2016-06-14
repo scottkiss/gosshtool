@@ -3,7 +3,6 @@ package gosshtool
 import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
-	"io"
 	"log"
 	"net"
 	"strings"
@@ -51,7 +50,7 @@ func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
 	return
 }
 
-func (c *SSHClient) Cmd(cmd string, sn *SshSession, deadline *time.Time) (output, errput string, currentSession *SshSession, err error) {
+func (c *SSHClient) Cmd(cmd string, sn *SshSession, deadline *time.Time, idleTimeout int) (output, errput string, currentSession *SshSession, err error) {
 	if c.isConnected == false {
 		_, err = c.Connect()
 		if err != nil {
@@ -59,7 +58,7 @@ func (c *SSHClient) Cmd(cmd string, sn *SshSession, deadline *time.Time) (output
 		}
 	}
 	if sn == nil {
-		currentSession, err = NewSession(c.remoteConn, deadline)
+		currentSession, err = NewSession(c.remoteConn, deadline, idleTimeout)
 	} else {
 		currentSession = sn
 		currentSession.SetDeadline(deadline)
@@ -78,14 +77,14 @@ func (c *SSHClient) Cmd(cmd string, sn *SshSession, deadline *time.Time) (output
 	return
 }
 
-func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo, deadline *time.Time) (currentSession *SshSession, err error) {
+func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo, deadline *time.Time, idleTimeout int) (currentSession *SshSession, err error) {
 	if c.isConnected == false {
 		_, err := c.Connect()
 		if err != nil {
 			return nil, err
 		}
 	}
-	currentSession, err = NewSession(c.remoteConn, deadline)
+	currentSession, err = NewSession(c.remoteConn, deadline, idleTimeout)
 	if err != nil {
 		return
 	}
@@ -97,18 +96,19 @@ func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo, deadline *time.Time) 
 	if err != nil {
 		return
 	}
-	go copyIO(wc, rw)
+
+	go CopyIOAndUpdateSessionDeadline(wc, rw, currentSession)
 
 	r, err := currentSession.StdoutPipe()
 	if err != nil {
 		return
 	}
-	go copyIO(rw, r)
+	go CopyIOAndUpdateSessionDeadline(rw, r, currentSession)
 	er, err := currentSession.StderrPipe()
 	if err != nil {
 		return
 	}
-	go copyIO(rw, er)
+	go CopyIOAndUpdateSessionDeadline(rw, er, currentSession)
 	err = currentSession.Shell()
 	if err != nil {
 		return
@@ -119,8 +119,4 @@ func (c *SSHClient) Pipe(rw ReadWriteCloser, pty *PtyInfo, deadline *time.Time) 
 	}
 	defer currentSession.Close()
 	return
-}
-
-func copyIO(dst io.Writer, src io.Reader) (written int64, err error) {
-	return io.Copy(dst, src)
 }
