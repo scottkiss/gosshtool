@@ -1,7 +1,7 @@
 # gosshtool
 [![Build Status](https://travis-ci.org/scottkiss/gosshtool.svg)](https://travis-ci.org/scottkiss/gosshtool)
 
-gosshtool provide some useful functions for ssh client in golang.implemented using golang.org/x/crypto/ssh.
+ssh tool library for Go,gosshtool provide some useful functions for ssh client in golang.implemented using golang.org/x/crypto/ssh.
 
 
 ## supports
@@ -17,7 +17,27 @@ go get -u github.com/scottkiss/gosshtool
 
 ## Examples
 
-### command execution
+### command execution on single server
+
+```golang
+    import "github.com/scottkiss/gosshtool"
+		sshconfig := &gosshtool.SSHClientConfig{
+			User:     "user",
+			Password: "pwd",
+			Host:     "11.11.22.22",
+		}
+		sshclient := gosshtool.NewSSHClient(sshconfig)
+		t.Log(sshclient.Host)
+		stdout, stderr,session, err := sshclient.Cmd("pwd",nil,nil,0)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(stdout)
+		t.Log(stderr)
+```
+
+
+### command execution on multiple servers
 
 ```golang
   import "github.com/scottkiss/gosshtool"
