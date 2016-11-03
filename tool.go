@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	mrand "math/rand"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -175,4 +177,21 @@ func ExecuteCmd(cmd, hostname string) (output, errput string, currentSession *Ss
 		return
 	}
 	return client.Cmd(cmd, nil, nil, 0)
+}
+
+func UploadFile(hostname, sourceFile, targetFile string) (stdout, stderr string, err error) {
+	client, err := getClient(hostname)
+	if err != nil {
+		return
+	}
+	f, err := os.Open(sourceFile)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	return client.TransferData(targetFile, data)
 }

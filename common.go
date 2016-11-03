@@ -24,6 +24,7 @@ type SSHClientConfig struct {
 	Password          string
 	Privatekey        string
 	DialTimeoutSecond int
+	MaxDataThroughput uint64
 }
 
 func makeConfig(user string, password string, privateKey string) (config *ssh.ClientConfig) {

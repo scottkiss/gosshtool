@@ -6,13 +6,48 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
+)
+
+const (
+	DEFAULT_CHUNK_SIZE        = 65536
+	MIN_CHUNKS                = 10
+	THROUGHPUT_SLEEP_INTERVAL = 100
+	MIN_THROUGHPUT            = DEFAULT_CHUNK_SIZE * MIN_CHUNKS * (1000 / THROUGHPUT_SLEEP_INTERVAL)
+)
+
+var (
+	maxThroughputChan  = make(chan bool, MIN_CHUNKS)
+	maxThroughput      uint64
+	maxThroughputMutex sync.Mutex
 )
 
 type SSHClient struct {
 	SSHClientConfig
 	remoteConn  *ssh.Client
 	isConnected bool
+}
+
+func (c *SSHClient) maxThroughputControl() {
+	for {
+		if c.MaxDataThroughput > 0 && c.MaxDataThroughput < MIN_THROUGHPUT {
+			log.Panicf("Minimal throughput is %d Bps", MIN_THROUGHPUT)
+		}
+		maxThroughputMutex.Lock()
+		throughput := c.MaxDataThroughput
+		maxThroughputMutex.Unlock()
+		chunks := throughput / DEFAULT_CHUNK_SIZE * THROUGHPUT_SLEEP_INTERVAL / 1000
+		if chunks < MIN_CHUNKS {
+			chunks = MIN_CHUNKS
+		}
+		for i := uint64(0); i < chunks; i++ {
+			maxThroughputChan <- true
+		}
+		if throughput > 0 {
+			time.Sleep(THROUGHPUT_SLEEP_INTERVAL * time.Millisecond)
+		}
+	}
 }
 
 func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
@@ -47,6 +82,54 @@ func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
 	}
 	log.Println("dial ssh success")
 	c.remoteConn = conn
+	return
+}
+
+func (c *SSHClient) TransferData(target string, data []byte) (stdout, stderr string, err error) {
+	go c.maxThroughputControl()
+
+	if c.isConnected == false {
+		_, err = c.Connect()
+		if err != nil {
+			return
+		}
+	}
+	currentSession, err := NewSession(c.remoteConn, nil, 0)
+	if err != nil {
+		return
+	}
+	defer currentSession.Close()
+	cmd := "cat >'" + strings.Replace(target, "'", "'\\''", -1) + "'"
+	stdinPipe, err := currentSession.StdinPipe()
+	if err != nil {
+		return
+	}
+	var stdoutBuf bytes.Buffer
+	var stderrBuf bytes.Buffer
+	currentSession.Stdout = &stdoutBuf
+	currentSession.Stderr = &stderrBuf
+	err = currentSession.session.Start(cmd)
+	if err != nil {
+		return
+	}
+	for start, max := 0, len(data); start < max; start += DEFAULT_CHUNK_SIZE {
+		<-maxThroughputChan
+		end := start + DEFAULT_CHUNK_SIZE
+		if end > max {
+			end = max
+		}
+		_, err = stdinPipe.Write(data[start:end])
+		if err != nil {
+			return
+		}
+	}
+	err = stdinPipe.Close()
+	if err != nil {
+		return
+	}
+	err = currentSession.Wait()
+	stdout = stdoutBuf.String()
+	stderr = stderrBuf.String()
 	return
 }
 
