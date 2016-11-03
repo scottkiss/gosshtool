@@ -1,4 +1,4 @@
-package main
+/*package main
 
 import (
 	"github.com/scottkiss/gosshtool"
@@ -27,4 +27,4 @@ func main() {
 		log.Panicln(stderr)
 	}
 	log.Println("upload succeeded " + stdout)
-}
+}*/
