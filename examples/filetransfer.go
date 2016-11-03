@@ -1,8 +1,8 @@
-/*package main
+package main
 
 import (
-	"github.com/scottkiss/gosshtool"
-	"log"
+//"github.com/scottkiss/gosshtool"
+//	"log"
 )
 
 const (
@@ -12,19 +12,19 @@ const (
 )
 
 func main() {
-	config := &gosshtool.SSHClientConfig{
-		User:     USER,
-		Password: PASSWORD,
-		Host:     HOST,
-	}
-	sshclient := gosshtool.NewSSHClient(config)
-	sshclient.MaxDataThroughput = 6553600
-	stdout, stderr, err := gosshtool.UploadFile(HOST, "./test", "/root/test/test.txt")
-	if err != nil {
-		log.Panicln(err)
-	}
-	if stderr != "" {
-		log.Panicln(stderr)
-	}
-	log.Println("upload succeeded " + stdout)
-}*/
+	//config := &gosshtool.SSHClientConfig{
+	//	User:     USER,
+	//	Password: PASSWORD,
+	//	Host:     HOST,
+	//}
+	//	sshclient := gosshtool.NewSSHClient(config)
+	//	sshclient.MaxDataThroughput = 6553600
+	//	stdout, stderr, err := gosshtool.UploadFile(HOST, "./test", "/root/test/test.txt")
+	//	if err != nil {
+	//		log.Panicln(err)
+	//	}
+	//	if stderr != "" {
+	//		log.Panicln(stderr)
+	//	}
+	//	log.Println("upload succeeded " + stdout)
+}
