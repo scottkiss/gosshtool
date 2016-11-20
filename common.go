@@ -39,7 +39,6 @@ func makeConfig(user string, password string, privateKey string) (config *ssh.Cl
 		},
 	}
 	if privateKey != "" {
-		log.Println(privateKey)
 		signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 		if err != nil {
 			log.Fatalf("ssh.ParsePrivateKey error:%v", err)
