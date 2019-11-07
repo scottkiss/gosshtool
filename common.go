@@ -29,14 +29,18 @@ type SSHClientConfig struct {
 
 func makeConfig(user string, password string, privateKey string) (config *ssh.ClientConfig) {
 
-	if password == "" && user == "" {
+	if password == "" && privateKey == "" {
 		log.Fatal("No password or private key available")
+	}
+	if user == "" {
+		log.Fatal("user is required parameter, not allow empyt!")
 	}
 	config = &ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	if privateKey != "" {
 		signer, err := ssh.ParsePrivateKey([]byte(privateKey))
@@ -49,6 +53,7 @@ func makeConfig(user string, password string, privateKey string) (config *ssh.Cl
 			Auth: []ssh.AuthMethod{
 				clientkey,
 			},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		}
 	}
 	return
