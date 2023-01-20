@@ -80,7 +80,6 @@ func (c *SSHClient) Connect() (conn *ssh.Client, err error) {
 			return
 		}
 	}
-	log.Println("dial ssh success")
 	c.remoteConn = conn
 	return
 }
