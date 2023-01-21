@@ -195,3 +195,16 @@ func UploadFile(hostname, sourceFile, targetFile string) (stdout, stderr string,
 	}
 	return client.TransferData(targetFile, data)
 }
+
+func UploadFileP(hostname, f *File, targetFile string) (stdout, stderr string, err error) {
+	client, err := getClient(hostname)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	return client.TransferData(targetFile, data)
+}
