@@ -195,3 +195,8 @@ func UploadFile(hostname, sourceFile, targetFile string) (stdout, stderr string,
 	}
 	return client.TransferData(targetFile, data)
 }
+
+func UploadFileBytes(hostname string, data []byte, targetFile string) (stdout, stderr string, err error) {
+	client, err := getClient(hostname)
+	return client.TransferData(targetFile, data)
+}
